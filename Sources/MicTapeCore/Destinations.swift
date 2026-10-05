@@ -75,7 +75,8 @@ public enum Destinations {
         var g = glob_t()
         defer { globfree(&g) }
         guard Darwin.glob(pattern, GLOB_BRACE | GLOB_TILDE, nil, &g) == 0 else { return [] }
-        return (0..<Int(g.gl_pathc)).compactMap { g.gl_pathv[$0].map { String(cString: $0) } }.sorted()
+        return (0..<Int(g.gl_pathc)).compactMap { g.gl_pathv[$0].map { String(cString: $0) } }
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     static func isDirectory(_ path: String) -> Bool {
