@@ -13,6 +13,7 @@ Usage:
   mictape test [--seconds N]                           Record a few seconds and check the input level
   mictape devices                                      List input devices
   mictape destinations                                 List configured destinations
+  mictape config                                       Show the effective configuration
 
 Options:
   -t, --to <name>        Destination to save into (case-insensitive substring)
@@ -341,6 +342,30 @@ func destinations(_ o: Options) throws {
     for d in list { print("\(d.name)\t\(d.path)") }
 }
 
+struct ConfigReport: Encodable {
+    let path: String
+    let exists: Bool
+    let filename: String
+    let needsLabel: Bool
+    let device: String?
+    let destinations: [DestinationRule]
+}
+
+func showConfig(_ o: Options) throws {
+    let url = Config.fileURL()
+    let config = try Config.load(from: url)
+    let report = ConfigReport(path: url.path, exists: FileManager.default.fileExists(atPath: url.path),
+                              filename: config.filename, needsLabel: config.filename.contains("{label}"),
+                              device: config.device, destinations: config.destinations)
+    if o.json { printJSON(report); return }
+    print("Config:   \(report.path)\(report.exists ? "" : " (not found, using defaults)")")
+    print("Filename: \(report.filename)")
+    print("Device:   \(report.device ?? "system default")")
+    for rule in report.destinations {
+        print("Destination: \(rule.path)" + (rule.subdirectory.map { " + \($0)" } ?? ""))
+    }
+}
+
 // MARK: - Main
 
 func run() async -> Int32 {
@@ -354,6 +379,7 @@ func run() async -> Int32 {
         case "test": try await test(o)
         case "devices": devices(o)
         case "destinations": try destinations(o)
+        case "config": try showConfig(o)
         case "version": print(MicTape.version)
         case "help", "": print(usage)
         default: throw CLIError.usage("Unknown command \(o.command)\n\n\(usage)")
