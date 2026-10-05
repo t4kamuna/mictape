@@ -1,0 +1,12 @@
+.build/
+.swiftpm/
+*.xcodeproj/
+xcuserdata/
+.DS_Store
+
+# Recordings never belong in the repository.
+*.m4a
+*.caf
+*.wav
+*.aac
+*.mp3
