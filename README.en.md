@@ -25,8 +25,11 @@ The Raycast extension lives in [`raycast/`](raycast/).
 git clone https://github.com/t4kamuna/mictape.git
 cd mictape
 swift build -c release
-install -m 755 .build/release/mictape /usr/local/bin/mictape
+mkdir -p ~/.local/bin
+install -m 755 .build/release/mictape ~/.local/bin/mictape
 ```
+
+If `~/.local/bin` is not on your `PATH`, add `export PATH="$HOME/.local/bin:$PATH"` to your shell profile (for example `~/.zshrc`).
 
 The first recording asks for microphone access. The permission is granted to the app that runs `mictape` (your terminal, or Raycast).
 

@@ -25,8 +25,11 @@ Raycast 拡張は [`raycast/`](raycast/) にあります。
 git clone https://github.com/t4kamuna/mictape.git
 cd mictape
 swift build -c release
-install -m 755 .build/release/mictape /usr/local/bin/mictape
+mkdir -p ~/.local/bin
+install -m 755 .build/release/mictape ~/.local/bin/mictape
 ```
+
+`~/.local/bin` が PATH に入っていなければ、シェルの設定（`~/.zshrc` など）に `export PATH="$HOME/.local/bin:$PATH"` を足してください。
 
 初めて録音するときに、マイクへのアクセス許可を求められます。許可は `mictape` を実行したアプリ（ターミナルや Raycast）に付きます。
 
