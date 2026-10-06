@@ -65,6 +65,15 @@ mictape destinations            # 設定した保存先の一覧
 - `filename`: 使えるトークンは `{label}` と `{date:FORMAT}`（[日付の書式](https://unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)）です。同じ名前のファイルがあれば `-2`、`-3` … を付けます。既定は `{date:yyyyMMdd-HHmmss}.m4a` です。
 - `device`: 入力機器の名前（の一部）か、`mictape devices` で表示される ID。既定はシステムの入力機器です。
 
+ファイルを直接編集する代わりに、コマンドでも変更できます（Raycast 拡張の Recording Settings もこれを使います）。設定ファイルがシンボリックリンクの場合は、リンク先のファイルを書き換えます。
+
+```sh
+mictape config add-destination "~/Documents/Classes/[0-9]*-?*" --subdirectory audio
+mictape config remove-destination "~/Recordings"
+mictape config set-filename "{label}-{date:yyyyMMdd}.m4a"
+mictape config preview-filename "{label}-{date:yyyyMMdd}.m4a"   # 3-20261006.m4a のような例を表示
+```
+
 ## ファイル
 
 - 録音: 設定した保存先にだけ書き込みます。

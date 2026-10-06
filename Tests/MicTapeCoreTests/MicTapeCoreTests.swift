@@ -83,6 +83,40 @@ import Testing
         #expect(config.destinations == Config().destinations)
     }
 
+    @Test func addRemoveAndSetFilename() throws {
+        var config = Config()
+        let added = config.addDestination(DestinationRule(path: "~/Classes/*", subdirectory: "audio"))
+        let addedAgain = config.addDestination(DestinationRule(path: "~/Classes/*", subdirectory: "audio"))
+        #expect(added && !addedAgain)
+        #expect(config.destinations.count == 2)
+        let removed = config.removeDestination(path: "~/Recordings")
+        #expect(removed == 1)
+        #expect(config.destinations == [DestinationRule(path: "~/Classes/*", subdirectory: "audio")])
+        try config.setFilename("{label}-{date:yyyyMMdd}")
+        #expect(config.filename == "{label}-{date:yyyyMMdd}")
+        var rejected: Error?
+        do { try config.setFilename("{oops}") } catch { rejected = error }
+        #expect(rejected as? FileNamingError == .unknownToken("oops"))
+        #expect(config.filename == "{label}-{date:yyyyMMdd}")
+    }
+
+    @Test func saveRoundTripsAndFollowsSymlinks() throws {
+        let dir = try TempDir()
+        let real = dir.url.appendingPathComponent("dotfiles/config.json")
+        try FileManager.default.createDirectory(at: real.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try "{}".write(to: real, atomically: true, encoding: .utf8)
+        let link = dir.url.appendingPathComponent("config.json")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: real)
+
+        var config = Config()
+        config.addDestination(DestinationRule(path: "~/Meetings"))
+        try config.save(to: link)
+
+        let attrs = try FileManager.default.attributesOfItem(atPath: link.path)
+        #expect(attrs[.type] as? FileAttributeType == .typeSymbolicLink)
+        #expect(try Config.load(from: real) == config)
+    }
+
     @Test func environmentOverridesLocation() {
         #expect(Config.fileURL(environment: ["MICTAPE_CONFIG": "/x/c.json"]).path == "/x/c.json")
         #expect(Config.fileURL(environment: ["XDG_CONFIG_HOME": "/xdg"]).path == "/xdg/mictape/config.json")

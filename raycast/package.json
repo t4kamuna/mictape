@@ -62,6 +62,13 @@
       "subtitle": "MicTape",
       "description": "Record five seconds and check the input level",
       "mode": "no-view"
+    },
+    {
+      "name": "configure",
+      "title": "Recording Settings",
+      "subtitle": "MicTape",
+      "description": "Choose where recordings are saved and how files are named",
+      "mode": "view"
     }
   ],
   "preferences": [

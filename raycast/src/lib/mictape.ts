@@ -17,7 +17,18 @@ export type Status = {
 
 export type Saved = { path: string; duration: number };
 
-export type ConfigInfo = { path: string; exists: boolean; filename: string; needsLabel: boolean };
+export type DestinationRule = { path: string; subdirectory?: string };
+
+export type ConfigInfo = {
+  path: string;
+  exists: boolean;
+  filename: string;
+  needsLabel: boolean;
+  device?: string;
+  destinations: DestinationRule[];
+};
+
+export type FilenamePreview = { template: string; example?: string; needsLabel: boolean; error?: string };
 
 export type LevelReport = { meanDB: number; maxDB: number; verdict: "ok" | "quiet" | "silent" };
 
@@ -66,6 +77,22 @@ export function run<T>(args: string[], timeoutMs = 30_000): Promise<T> {
 export const getStatus = () => run<Status>(["status"]);
 export const getDestinations = () => run<Destination[]>(["destinations"]);
 export const getConfig = () => run<ConfigInfo>(["config"]);
+export const addDestination = (rule: DestinationRule) =>
+  run<ConfigInfo>([
+    "config",
+    "add-destination",
+    rule.path,
+    ...(rule.subdirectory ? ["--subdirectory", rule.subdirectory] : []),
+  ]);
+export const removeDestination = (rule: DestinationRule) =>
+  run<ConfigInfo>([
+    "config",
+    "remove-destination",
+    rule.path,
+    ...(rule.subdirectory ? ["--subdirectory", rule.subdirectory] : []),
+  ]);
+export const setFilename = (template: string) => run<ConfigInfo>(["config", "set-filename", template]);
+export const previewFilename = (template: string) => run<FilenamePreview>(["config", "preview-filename", template]);
 export const startRecording = (destination: string, label?: string) =>
   run<Status>(["start", "--to", destination, ...(label ? ["--label", label] : [])], 60_000);
 export const stopRecording = () => run<Saved>(["stop"]);

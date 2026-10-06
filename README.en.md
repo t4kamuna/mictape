@@ -65,6 +65,15 @@ Optional. `~/.config/mictape/config.json` (or `$XDG_CONFIG_HOME/mictape/config.j
 - `filename`: tokens are `{label}` and `{date:FORMAT}` ([date format patterns](https://unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)). If the file exists, `-2`, `-3`, … is appended. Default: `{date:yyyyMMdd-HHmmss}.m4a`.
 - `device`: input device name (or part of it) or ID from `mictape devices`. Default: the system input.
 
+Instead of editing the file, you can change it with commands (the Raycast extension's Recording Settings uses these). If the config file is a symlink, the file it points to is updated.
+
+```sh
+mictape config add-destination "~/Documents/Classes/[0-9]*-?*" --subdirectory audio
+mictape config remove-destination "~/Recordings"
+mictape config set-filename "{label}-{date:yyyyMMdd}.m4a"
+mictape config preview-filename "{label}-{date:yyyyMMdd}.m4a"   # prints an example such as 3-20261006.m4a
+```
+
 ## Files
 
 - Recordings: only in the destinations you configure.

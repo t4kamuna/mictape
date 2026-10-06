@@ -14,6 +14,10 @@ Usage:
   mictape devices                                      List input devices
   mictape destinations                                 List configured destinations
   mictape config                                       Show the effective configuration
+  mictape config add-destination <path> [--subdirectory <dir>]
+  mictape config remove-destination <path> [--subdirectory <dir>]
+  mictape config set-filename <template>
+  mictape config preview-filename <template> [--label <label>]
 
 Options:
   -t, --to <name>        Destination to save into (case-insensitive substring)
@@ -32,6 +36,7 @@ struct Options {
     var label: String?
     var device: String?
     var output: String?
+    var subdirectory: String?
     var seconds = 10.0
     var json = false
     var background = false
@@ -61,6 +66,7 @@ func parse(_ args: [String]) throws -> Options {
         case "-l", "--label": o.label = try value(arg)
         case "-d", "--device": o.device = try value(arg)
         case "--output": o.output = try value(arg)
+        case "--subdirectory": o.subdirectory = try value(arg)
         case "--seconds":
             guard let s = Double(try value(arg)), s > 0 else { throw CLIError.usage("--seconds must be a positive number") }
             o.seconds = s
@@ -73,8 +79,11 @@ func parse(_ args: [String]) throws -> Options {
             if o.command.isEmpty { o.command = arg } else { o.positionals.append(arg) }
         }
     }
-    if o.to == nil, o.positionals.count > 0 { o.to = o.positionals[0] }
-    if o.label == nil, o.positionals.count > 1 { o.label = o.positionals[1] }
+    // For config, positionals are a subcommand and its argument, not a destination and label.
+    if o.command != "config" {
+        if o.to == nil, o.positionals.count > 0 { o.to = o.positionals[0] }
+        if o.label == nil, o.positionals.count > 1 { o.label = o.positionals[1] }
+    }
     if o.positionals.count > 2 { throw CLIError.usage("Too many arguments") }
     return o
 }
@@ -351,9 +360,60 @@ struct ConfigReport: Encodable {
     let destinations: [DestinationRule]
 }
 
-func showConfig(_ o: Options) throws {
+struct FilenamePreview: Encodable {
+    let template: String
+    let example: String?
+    let needsLabel: Bool
+    let error: String?
+}
+
+func configCommand(_ o: Options) throws {
     let url = Config.fileURL()
-    let config = try Config.load(from: url)
+    var config = try Config.load(from: url)
+    let sub = o.positionals.first
+    let arg = o.positionals.count > 1 ? o.positionals[1] : nil
+    func need(_ what: String) throws -> String {
+        guard let arg, !arg.isEmpty else { throw CLIError.usage("config \(sub ?? "") needs \(what)") }
+        return arg
+    }
+    switch sub {
+    case nil:
+        break
+    case "add-destination":
+        let path = try need("a path")
+        let subdirectory = o.subdirectory.flatMap { $0.isEmpty ? nil : $0 }
+        if !config.addDestination(DestinationRule(path: path, subdirectory: subdirectory)) {
+            throw CLIError.message("That destination is already configured.")
+        }
+        try config.save(to: url)
+    case "remove-destination":
+        let path = try need("a path")
+        if config.removeDestination(path: path, subdirectory: o.subdirectory) == 0 {
+            throw CLIError.message("No configured destination has the path \(path).")
+        }
+        try config.save(to: url)
+    case "set-filename":
+        try config.setFilename(try need("a template"))
+        try config.save(to: url)
+    case "preview-filename":
+        let template = try need("a template")
+        let needsLabel = template.contains("{label}")
+        let preview: FilenamePreview
+        do {
+            let example = try FileNaming.render(template, label: needsLabel ? (o.label ?? "3") : nil)
+            preview = FilenamePreview(template: template, example: example, needsLabel: needsLabel, error: nil)
+        } catch {
+            preview = FilenamePreview(template: template, example: nil, needsLabel: needsLabel, error: "\(error)")
+        }
+        if o.json { printJSON(preview) } else { print(preview.example ?? preview.error ?? "") }
+        return
+    default:
+        throw CLIError.usage("Unknown config subcommand \(sub!)\n\n\(usage)")
+    }
+    try showConfig(o, url: url, config: config)
+}
+
+func showConfig(_ o: Options, url: URL, config: Config) throws {
     let report = ConfigReport(path: url.path, exists: FileManager.default.fileExists(atPath: url.path),
                               filename: config.filename, needsLabel: config.filename.contains("{label}"),
                               device: config.device, destinations: config.destinations)
@@ -379,7 +439,7 @@ func run() async -> Int32 {
         case "test": try await test(o)
         case "devices": devices(o)
         case "destinations": try destinations(o)
-        case "config": try showConfig(o)
+        case "config": try configCommand(o)
         case "version": print(MicTape.version)
         case "help", "": print(usage)
         default: throw CLIError.usage("Unknown command \(o.command)\n\n\(usage)")

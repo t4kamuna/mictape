@@ -46,6 +46,40 @@ public struct Config: Codable, Sendable, Equatable {
             throw ConfigError.invalid(url.path, error)
         }
     }
+
+    /// Writes the config. Symlinks are followed so a config linked from a
+    /// dotfiles repository is updated in place instead of being replaced.
+    public func save(to url: URL = Config.fileURL()) throws {
+        let target = url.resolvingSymlinksInPath()
+        try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        var data = try encoder.encode(self)
+        data.append(0x0A)
+        try data.write(to: target, options: .atomic)
+    }
+
+    /// Adds a destination rule. Returns false when the same rule already exists.
+    @discardableResult
+    public mutating func addDestination(_ rule: DestinationRule) -> Bool {
+        guard !destinations.contains(rule) else { return false }
+        destinations.append(rule)
+        return true
+    }
+
+    /// Removes rules whose path matches (and subdirectory, when given). Returns how many were removed.
+    @discardableResult
+    public mutating func removeDestination(path: String, subdirectory: String? = nil) -> Int {
+        let before = destinations.count
+        destinations.removeAll { $0.path == path && (subdirectory == nil || $0.subdirectory == subdirectory) }
+        return before - destinations.count
+    }
+
+    /// Sets the file name template after checking that it renders.
+    public mutating func setFilename(_ template: String) throws {
+        _ = try FileNaming.render(template, label: template.contains("{label}") ? "1" : nil)
+        filename = template
+    }
 }
 
 public struct DestinationRule: Codable, Sendable, Equatable {

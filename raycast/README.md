@@ -25,10 +25,13 @@ The first recording started from Raycast asks for microphone access for Raycast.
 - **Stop Recording** — stop and save.
 - **Recording Status** — shows the elapsed time in the menu bar while recording.
 - **Test Microphone** — records five seconds and reports the input level.
+- **Recording Settings** — add or remove destinations and edit the file name template, with a live example.
 
 ## Destinations and file names
 
-Configure them in `~/.config/mictape/config.json`. See the [mictape README](https://github.com/t4kamuna/mictape/blob/main/README.en.md#configuration).
+Set them in **Recording Settings**: pick a folder, or enter a glob so that every matching folder becomes a destination. The file name template supports `{label}` and `{date:FORMAT}`.
+
+Settings are stored in `~/.config/mictape/config.json` and shared with the `mictape` command line. See the [mictape README](https://github.com/t4kamuna/mictape/blob/main/README.en.md#configuration).
 
 ```json
 {

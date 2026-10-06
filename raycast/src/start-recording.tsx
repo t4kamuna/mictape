@@ -14,6 +14,7 @@ import {
 import { usePromise } from "@raycast/utils";
 import { homedir } from "node:os";
 import { useState } from "react";
+import Settings from "./configure";
 import { showError } from "./lib/errors";
 import {
   ConfigInfo,
@@ -180,7 +181,12 @@ export default function Command() {
         <List.EmptyView
           icon={Icon.Folder}
           title="No destinations"
-          description={`Add destinations to ${data.config.path.replace(homedir(), "~")}`}
+          description="Add a folder to record into in Recording Settings."
+          actions={
+            <ActionPanel>
+              <Action.Push title="Open Recording Settings" icon={Icon.Gear} target={<Settings />} />
+            </ActionPanel>
+          }
         />
       )}
       {data?.destinations.map((destination) => (
@@ -201,6 +207,13 @@ export default function Command() {
                 <Action title="Start Recording" icon={Icon.Microphone} onAction={() => start(destination)} />
               )}
               <Action.ShowInFinder path={destination.path} />
+              <Action.Push
+                title="Open Recording Settings"
+                icon={Icon.Gear}
+                shortcut={{ modifiers: ["cmd"], key: "," }}
+                target={<Settings />}
+                onPop={revalidate}
+              />
             </ActionPanel>
           }
         />
