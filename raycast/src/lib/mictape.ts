@@ -21,7 +21,7 @@ export type ConfigInfo = { path: string; exists: boolean; filename: string; need
 
 export type LevelReport = { meanDB: number; maxDB: number; verdict: "ok" | "quiet" | "silent" };
 
-export const INSTALL_URL = "https://github.com/t4kamuna/mictape#install-from-source";
+export const INSTALL_URL = "https://github.com/t4kamuna/mictape/blob/main/README.en.md#install-from-source";
 
 export class MictapeNotFoundError extends Error {
   constructor() {

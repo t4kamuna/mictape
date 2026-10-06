@@ -1,21 +1,25 @@
 # mictape
 
-Record your Mac's microphone to `.m4a` files from the command line — long sessions, no fuss.
+日本語 | [English](README.en.md)
 
-- **Crash-safe.** Audio is written as fragmented MP4 and flushed every second. If the process is killed or the battery dies, everything up to the last second still plays.
-- **Saves where you want, named how you want.** Pick a destination by name (`mictape start physics 3`) from directories you configure with globs, and name files with a template.
-- **Runs in the background.** `start` / `stop` / `status` let launchers such as Raycast drive it.
-- **Keeps the Mac awake** (idle sleep only) while recording.
-- **Private by design.** No network access, no telemetry, no account. The only permission it asks for is the microphone.
+Mac のマイクの音を、コマンドラインから `.m4a` ファイルに録音するツールです。授業や会議のような長時間の録音を、手間なく確実に残すことを目的にしています。
 
-Format: AAC, 48 kHz, mono, 128 kbps (about 86 MB for 90 minutes).
+- **落ちても残る。** 音声は fragmented MP4 として1秒ごとに書き出します。プロセスが強制終了しても、電池が切れても、直前の1秒までは再生できます。
+- **好きな場所に、好きな名前で保存できる。** 保存先は glob で指定したフォルダの中から名前で選び（`mictape start physics 3`）、ファイル名はテンプレートで決めます。
+- **裏で録音できる。** `start` / `stop` / `status` があるので、Raycast などのランチャーから操作できます。
+- **録音中は Mac をスリープさせません**（アイドル時のスリープのみ）。
+- **プライバシーに配慮しています。** 通信は一切せず、テレメトリもアカウントもありません。要求する権限はマイクだけです。
 
-## Requirements
+形式は AAC、48 kHz、モノラル、128 kbps です（90分で約 86 MB）。
 
-- macOS 14 or later
-- Swift 6 (Xcode 16, or just the Command Line Tools: `xcode-select --install`)
+Raycast 拡張は [`raycast/`](raycast/) にあります。
 
-## Install from source
+## 動作環境
+
+- macOS 14 以降
+- Swift 6（Xcode 16、または Command Line Tools だけでも可: `xcode-select --install`）
+
+## ソースからのインストール
 
 ```sh
 git clone https://github.com/t4kamuna/mictape.git
@@ -24,27 +28,27 @@ swift build -c release
 install -m 755 .build/release/mictape /usr/local/bin/mictape
 ```
 
-The first recording asks for microphone access. The permission is granted to the app that runs `mictape` (your terminal, or Raycast).
+初めて録音するときに、マイクへのアクセス許可を求められます。許可は `mictape` を実行したアプリ（ターミナルや Raycast）に付きます。
 
-## Usage
+## 使い方
 
 ```sh
-mictape test                    # record 10 seconds and check the input level
-mictape record                  # record in the foreground; press q or Ctrl+C to stop
-mictape start physics 3         # record in the background into "physics", label "3"
+mictape test                    # 10秒録って入力レベルを確認する
+mictape record                  # 前面で録音する。q か Ctrl+C で止める
+mictape start physics 3         # 裏で録音する。保存先は "physics"、ラベルは "3"
 mictape status
 mictape stop
-mictape devices                 # list input devices
-mictape destinations            # list configured destinations
+mictape devices                 # 入力機器の一覧
+mictape destinations            # 設定した保存先の一覧
 ```
 
-`start`, `stop`, `status`, `devices`, `destinations`, and `test` accept `--json`.
+`start`、`stop`、`status`、`devices`、`destinations`、`test` は `--json` に対応しています。
 
-Keep the lid open while recording: closing it sleeps the Mac, and the recording stops there (what was recorded so far is kept).
+録音中は蓋を閉じないでください。閉じると Mac がスリープし、録音はそこで止まります（それまでに録った分は残ります）。
 
-## Configuration
+## 設定
 
-Optional. `~/.config/mictape/config.json` (or `$XDG_CONFIG_HOME/mictape/config.json`, or the path in `$MICTAPE_CONFIG`):
+任意です。`~/.config/mictape/config.json`（`$XDG_CONFIG_HOME/mictape/config.json`、または `$MICTAPE_CONFIG` で指定したパス）に置きます。
 
 ```json
 {
@@ -57,15 +61,15 @@ Optional. `~/.config/mictape/config.json` (or `$XDG_CONFIG_HOME/mictape/config.j
 }
 ```
 
-- `destinations`: directories or globs. Every directory a glob matches becomes a destination, picked by a case-insensitive part of its name. `subdirectory` is appended and created when recording starts. A path without wildcards is used even if it does not exist yet. Default: `~/Recordings`.
-- `filename`: tokens are `{label}` and `{date:FORMAT}` ([date format patterns](https://unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)). If the file exists, `-2`, `-3`, … is appended. Default: `{date:yyyyMMdd-HHmmss}.m4a`.
-- `device`: input device name (or part of it) or ID from `mictape devices`. Default: the system input.
+- `destinations`: フォルダのパスか glob。glob に一致したフォルダがそれぞれ保存先になり、名前の一部（大文字小文字は区別しない）で選びます。`subdirectory` は一致したフォルダの下に付け足され、録音開始時に作られます。ワイルドカードを含まないパスは、まだ存在しなくてもそのまま使います。既定は `~/Recordings` です。
+- `filename`: 使えるトークンは `{label}` と `{date:FORMAT}`（[日付の書式](https://unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)）です。同じ名前のファイルがあれば `-2`、`-3` … を付けます。既定は `{date:yyyyMMdd-HHmmss}.m4a` です。
+- `device`: 入力機器の名前（の一部）か、`mictape devices` で表示される ID。既定はシステムの入力機器です。
 
-## Files
+## ファイル
 
-- Recordings: only in the destinations you configure.
-- State: `~/Library/Application Support/mictape/` (the running recording and the background recorder's log).
+- 録音: 設定した保存先にだけ書き込みます。
+- 状態: `~/Library/Application Support/mictape/`（録音中の情報と、裏で動く録音プロセスのログ）。
 
-## License
+## ライセンス
 
 MIT

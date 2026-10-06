@@ -28,7 +28,7 @@ The first recording started from Raycast asks for microphone access for Raycast.
 
 ## Destinations and file names
 
-Configure them in `~/.config/mictape/config.json`. See the [mictape README](https://github.com/t4kamuna/mictape#configuration).
+Configure them in `~/.config/mictape/config.json`. See the [mictape README](https://github.com/t4kamuna/mictape/blob/main/README.en.md#configuration).
 
 ```json
 {
