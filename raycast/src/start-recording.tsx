@@ -13,6 +13,7 @@ import {
 } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { homedir } from "node:os";
+import { useState } from "react";
 import { showError } from "./lib/errors";
 import {
   ConfigInfo,
@@ -54,20 +55,32 @@ async function refreshMenuBar() {
   }
 }
 
-async function start(destination: Destination, label?: string) {
+/** Returns whether the recording started. */
+async function start(destination: Destination, label?: string): Promise<boolean> {
   try {
     const status = await startRecording(destination.name, label);
     if (label) await LocalStorage.setItem(labelKey(destination), label);
     await refreshMenuBar();
     await showHUD(`Recording → ${fileName(status.path ?? "")}`);
     await popToRoot();
+    return true;
   } catch (error) {
     await showError("Could not start recording", error);
+    return false;
   }
+}
+
+/** Mirrors mictape's own rule so the problem shows up next to the field instead of as a toast. */
+function labelError(label: string): string | undefined {
+  if (!label) return "Enter a label";
+  if (label.includes("/")) return "A label cannot contain “/”";
+  if (label.startsWith(".")) return "A label cannot start with “.”";
+  return undefined;
 }
 
 function LabelForm({ destination }: { destination: Destination }) {
   const { data: suggested, isLoading } = usePromise(suggestLabel, [destination]);
+  const [error, setError] = useState<string>();
   const { pop } = useNavigation();
   return (
     <Form
@@ -80,9 +93,12 @@ function LabelForm({ destination }: { destination: Destination }) {
             icon={Icon.Microphone}
             onSubmit={async (values: { label: string }) => {
               const label = values.label.trim();
-              if (!label) return;
-              await start(destination, label);
-              pop();
+              const problem = labelError(label);
+              if (problem) {
+                setError(problem);
+                return;
+              }
+              if (await start(destination, label)) pop();
             }}
           />
         </ActionPanel>
@@ -96,6 +112,8 @@ function LabelForm({ destination }: { destination: Destination }) {
           placeholder="e.g. 3"
           info="Fills {label} in the file name template"
           defaultValue={suggested}
+          error={error}
+          onChange={() => setError(undefined)}
           autoFocus
         />
       )}
