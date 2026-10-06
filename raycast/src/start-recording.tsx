@@ -207,13 +207,7 @@ export default function Command() {
                 <Action title="Start Recording" icon={Icon.Microphone} onAction={() => start(destination)} />
               )}
               <Action.ShowInFinder path={destination.path} />
-              <Action.Push
-                title="Open Recording Settings"
-                icon={Icon.Gear}
-                shortcut={{ modifiers: ["cmd"], key: "," }}
-                target={<Settings />}
-                onPop={revalidate}
-              />
+              <Action.Push title="Open Recording Settings" icon={Icon.Gear} target={<Settings />} onPop={revalidate} />
             </ActionPanel>
           }
         />
