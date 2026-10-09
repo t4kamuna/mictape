@@ -19,6 +19,14 @@ Raycast 拡張は [`raycast/`](raycast/) にあります。
 - macOS 14 以降
 - Swift 6（Xcode 16、または Command Line Tools だけでも可: `xcode-select --install`）
 
+## Homebrew でのインストール
+
+```sh
+brew install t4kamuna/tap/mictape
+```
+
+インストール時にソースからビルドします。
+
 ## ソースからのインストール
 
 ```sh

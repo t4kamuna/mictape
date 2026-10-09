@@ -19,6 +19,14 @@ The Raycast extension lives in [`raycast/`](raycast/).
 - macOS 14 or later
 - Swift 6 (Xcode 16, or just the Command Line Tools: `xcode-select --install`)
 
+## Install with Homebrew
+
+```sh
+brew install t4kamuna/tap/mictape
+```
+
+The formula builds mictape from source during installation.
+
 ## Install from source
 
 ```sh
